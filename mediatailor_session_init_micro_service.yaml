@@ -65,6 +65,7 @@ Resources:
             Principal:
               Service:
                 - lambda.amazonaws.com
+                - edgelambda.amazonaws.com
             Action:
               - sts:AssumeRole
       Tags:
@@ -83,6 +84,8 @@ Resources:
           - Effect: Allow
             Action:
               - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
             Resource:
               - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*
           - Effect: Allow
