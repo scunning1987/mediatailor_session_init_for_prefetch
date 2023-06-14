@@ -94,7 +94,7 @@ This example uses cURL to show the call flow:
 
 ```shell
 REQUEST:
-% curl -v https://123.cloudfront.net/session-initializer/v1/session/94063eadf7d8c56e9e2edd84fdf897826a70d0df/prefetch/out/v1/4d6b21805fb24291abf3534adfea8966/index.m3u8 --data '{"adsParams":{"device":"smartphone","subscription":"tier2"}}' | jq .
+% curl -X POST https://123.cloudfront.net/session-initializer/v1/session/94063eadf7d8c56e9e2edd84fdf897826a70d0df/prefetch/out/v1/4d6b21805fb24291abf3534adfea8966/index.m3u8 --data '{"adsParams":{"device":"smartphone","subscription":"tier2"}}' | jq .
 
 RESPONSE:
 {
