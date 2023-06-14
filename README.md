@@ -36,6 +36,12 @@ In order to use the micro-service, a path is inserted into the prefix path at th
 
 ### Example 1: Create a session using HLS playback prefix
 This example uses cURL to show the call flow:
+1. The initial call is a GET to the HLS playback prefix, with `/session-initializer/` in the path
+2. The Lambda@Edge function is invoked and a random stream id is generated
+3. The Lambda@Edge function returns an HTTP 302 redirect to the client, with the `/session-initializer/` path removed, and an aws.streamId query parameter appended
+4. The client will send a request to the HTTP 302 location, which will get proxied through CloudFront to MediaTailor, where MediaTailor will create a session with the stream id value
+
+
 ```shell
 REQUEST:
 % curl -v https://123.cloudfront.net/session-initializer/v1/master/94063eadf7d8c56e9e2edd84fdf897826a70d0df/prefetch/out/v1/4d6b21805fb24291abf3534adfea8966/index.m3u8"
@@ -56,6 +62,11 @@ RESPONSE:
 
 ### Example 2: Create a session using DASH playback prefix
 This example uses cURL to show the call flow:
+1. The initial call is a GET to the DASH playback prefix, with `/session-initializer/` in the path
+2. The Lambda@Edge function is invoked and a random stream id is generated
+3. The Lambda@Edge function returns an HTTP 302 redirect to the client, with the `/session-initializer/` path removed, and an aws.streamId query parameter appended
+4. The client will send a request to the HTTP 302 location, which will get proxied through CloudFront to MediaTailor, where MediaTailor will create a session with the stream id value
+
 ```shell
 REQUEST:
 % curl -vvv "https://123.cloudfront.net/session-initializer/v1/dash/94063eadf7d8c56e9e2edd84fdf897826a70d0df/prefetch/c09ec45a7b484eea88aefc30376ff6e2/index.mpd"
@@ -75,7 +86,11 @@ RESPONSE:
 
 
 ### Example 3: Create a session using session initialization playback prefix
-
+This example uses cURL to show the call flow:
+1. The initial call is a POST to the session initialization playback prefix, with `/session-initializer/` in the path. There is a small body being sent in the call, to represent ads parameters
+2. The Lambda@Edge function is invoked and a random stream id is generated
+3. The Lambda@Edge function creates the session on MediaTailor using the parameters provided
+4. The Lambda@Edge function returns an HTTP 200 response to the client, along with the relative root path structure to the manifest and ad tracking endpoints
 
 ```shell
 REQUEST:
