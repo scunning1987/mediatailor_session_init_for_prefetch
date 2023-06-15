@@ -606,7 +606,7 @@ Resources:
 
 
 
-    Tags:
+      Tags:
         - Key: StackName
           Value: !Ref AWS::StackName
 
