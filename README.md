@@ -18,6 +18,8 @@ With no prefetch, requests may time out if the ADS doesn't have the capacity to 
 ![](images/adsrequests2.png?width=50pc&classes=border,shadow)
 With the use of prefetch schedules, MediaTailor is able to keep within the ad serving capacity of the ADS. This uses the concept of `stream id` to group requests together in their own retrieval windows
 
+This github solution is a reference architecture to show you have a session initialization micro-service (in this case, a Lambda@Edge function) can be used to randomly assign a `stream id` for each session.
+
 ## Release Notes
 | Date       | Version | Update Notes                                                           |
 |------------|-----|------------------------------------------------------------------------|
