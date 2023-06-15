@@ -40,7 +40,7 @@ This github solution is a reference architecture to show you have a session init
 
 1. Login to the AWS Console
 2. Navigate to the AWS CloudFormation service in the `us-east-1` region (The solution deploys a Lambda@Edge function, [which run in us-east-1 only at this time](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/edge-functions-restrictions.html#lambda-at-edge-restrictions-region))
-3. Choose to upload a file; use [this](#) CloudFormation template to deploy the micro-service. As this is a reference architecture, the CloudFormation template also creates a MediaTailor configuration and CloudFront distribution.
+3. Choose to upload a file; use [this](https://raw.githubusercontent.com/scunning1987/mediatailor_session_init_for_prefetch/main/mediatailor_session_init_micro_service.yaml) CloudFormation template to deploy the micro-service. As this is a reference architecture, the CloudFormation template also creates a MediaTailor configuration and CloudFront distribution.
 
 There is x input parameters, for the `StreamId` parameter, specify a number between 1 and 10
 
