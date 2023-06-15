@@ -385,7 +385,7 @@ Resources:
             LOGGER.debug("event: %s" % (json.dumps(event)))
             
             # Number of prefetch groups to use as part of the stream id range, starting at 1 and inclusive of the number passed in this variable
-            prefetch_groups = ${MediaTailorAdsUrl}
+            prefetch_groups = ${NumberOfPrefetchGroups}
             
             LOGGER.debug("Number of prefetch groups: %s" % (prefetch_groups))
             
