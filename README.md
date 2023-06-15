@@ -55,6 +55,9 @@ MediaTailor configurations provide three prefixes when created (Check the CloudF
 
 In order to use the micro-service, a path is inserted into the prefix path at the first position; `session-initializer`. This will trigger a request on a preconfigured CloudFront behavior to invoke a Lambda function that will randomly create a stream id for the session. The Lambda will then issue a redirect back to the client (if the HLS or DASH playback prefixes were used), or create the session on behalf of the client (if the session initialization prefix was used)
 
+![](images/sequence_diagram.png?width=50pc&classes=border,shadow)
+
+
 ### Example 1: Create a session using HLS playback prefix
 This example uses cURL to show the call flow:
 1. The initial call is a GET to the HLS playback prefix, with `/session-initializer/` in the path
