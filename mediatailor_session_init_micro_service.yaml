@@ -16,6 +16,21 @@ Parameters:
     Description: Origin URL
     Type: String
     Default: https://mycdn.com/media/
+  NumberOfPrefetchGroups:
+    Description: Enter a number between 1 and 10 for the number of prefetch groups. The session initialization micro-service will randomly assign a number for each new session
+    Type: Number
+    AllowedValues:
+      - 1
+      - 2
+      - 3
+      - 4
+      - 5
+      - 6
+      - 7
+      - 8
+      - 9
+      - 10
+    Default: 3
 
 ## Resources
 Resources:
