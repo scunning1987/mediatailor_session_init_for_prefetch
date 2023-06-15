@@ -125,6 +125,8 @@ Resources:
               OriginProtocolPolicy: https-only
           - DomainName: !Select [ 2, !Split [ '/' , !GetAtt MediaTailorConfiguration.PlaybackEndpointPrefix ] ]
             Id: !Sub MediaTailor_SSAI_Endpoints_${AWS::StackName}
+          - DomainName: aws.amazon.com
+            Id: aws
 
             CustomOriginConfig:
               HTTPSPort: 443
@@ -155,11 +157,28 @@ Resources:
             CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad # Managed-CachingDisabled # 4135ea2d-6df8-44a3-9df3-4b5a84be39ad
             OriginRequestPolicyId: 216adef6-5c7f-47e4-b989-5492eafa07d3 # Managed-AllViewer # 216adef6-5c7f-47e4-b989-5492eafa07d3
             ResponseHeadersPolicyId: 5cc3b908-e619-4b99-88e5-2cf7f45965bd # Managed-CORS-With-Preflight # 5cc3b908-e619-4b99-88e5-2cf7f45965bd
+          - PathPattern: '/session-initializer/*'
+            AllowedMethods:
+              - GET
+              - HEAD
+              - OPTIONS
+              - PUT
+              - POST
+              - PATCH
+              - DELETE
+            TargetOriginId: aws
+            CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad # Managed-CachingDisabled # 4135ea2d-6df8-44a3-9df3-4b5a84be39ad
+            OriginRequestPolicyId: 216adef6-5c7f-47e4-b989-5492eafa07d3 # Managed-AllViewer # 216adef6-5c7f-47e4-b989-5492eafa07d3
+            LambdaFunctionAssociations:
+            - EventType: origin-request
+              IncludeBody: true
+              LambdaFunctionARN: !Ref MediaTailorMicroServiceVersion
       Tags:
         - Key: StackName
           Value: !Ref AWS::StackName
     DependsOn:
       - MediaTailorConfiguration
+      - MediaTailorMicroServiceVersion
 
   #################
   ## Custom Resource
@@ -316,6 +335,265 @@ Resources:
         - Key: StackName
           Value: !Ref AWS::StackName
 
+
+  MediaTailorMicroService:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: Lambda function to randomly generate stream id and initailize MediaTailor sessions
+      Role: !GetAtt LambdaRole.Arn
+      Runtime: python3.8
+      Handler: index.lambda_handler
+      Timeout: 3
+      MemorySize: 128
+      Code:
+        ZipFile: |
+          '''
+          Function : Session initialization micro-service, with auto stream-id generator
+          '''
+          import json
+          import logging
+          import random
+          import base64
+          from urllib.parse import urlencode
+          import urllib
+          import urllib3
+          
+          LOGGER = logging.getLogger()
+          LOGGER.setLevel(logging.DEBUG)
+          
+          def lambda_handler(event, context):
+              
+              LOGGER.debug("event: %s" % (json.dumps(event)))
+              
+              # Number of prefetch groups to use as part of the stream id range, starting at 1 and inclusive of the number passed in this variable
+              prefetch_groups = 6
+              
+              LOGGER.debug("Number of prefetch groups: %s" % (prefetch_groups))
+              
+              
+              # randomize the stream id to use for the session
+              stream_id_int = random.randrange(1, int(prefetch_groups)+1, 1)
+              LOGGER.debug("Stream ID that will be used for this session: %s" % (stream_id_int))
+              
+              def response_template(response_body,response_code,response_desc,content_type):
+                  
+                  headers = { 
+                      "content-type" : [{
+                      "key":"Content-Type","value":content_type
+                      }]
+                      }
+                  
+                  response = {
+                          'body': response_body,
+                               'bodyEncoding': 'text',
+                               'headers':headers,
+                               'status': response_code,
+                               'statusDescription': response_desc
+                  };
+              return response
+              #return response_template(json.dumps(event),200,"description","text/html")
+              
+              def redirect_response_template(location_url):
+                 response = {
+                 'status': '302',
+                 'statusDescription': 'Found',
+                 'headers': {
+                   'location': [{
+                     'key': 'Location',
+                     'value': location_url
+                   }]
+                 }
+                }
+                return response
+              
+              
+              request = event['Records'][0]['cf']['request']
+              request_method = request['method']
+              protocol = request['origin']['custom']['protocol']
+              #host = request['origin']['custom']['domainName']
+              path = request['uri']
+              req_headers = request['headers']
+              queryparams_str = request['querystring']
+              cdn_domain_name =  event['Records'][0]['cf']['config']['distributionDomainName']
+              
+              # remove 'session-initializer' from path
+              path = '/'.join(path.split("/")[2:])
+              
+              
+              if request_method == "GET":
+               
+               # This is an implicit session creation
+               LOGGER.debug("HTTP request method is GET, this indicates an implicit session initialization")
+               
+               # Append stream id to query parameters
+               if len(queryparams_str) > 0:
+                 queryparams_str += "&aws.streamId=%s" % (stream_id_int)
+               else:
+                 queryparams_str = "aws.streamId=%s" % (stream_id_int)
+               
+               
+               # Construct the redirect URL
+               location_url = "%s://%s/%s?%s" % (protocol,cdn_domain_name,path,queryparams_str)
+               
+               
+               # Return a redirect back to the client
+               return redirect_response_template(location_url)
+              
+              
+              elif request_method == "POST":
+               
+               # This is an explicit session initialization
+               LOGGER.debug("HTTP request method is POST, this indicates an explicit session initialization")
+               
+               # Get body to json
+               body_encoding = request['body']['encoding']
+               body_data = request['body']['data']
+               
+               path_to_list = path.split("/")
+               path_to_list[1] = "session"
+               path = '/'.join(path_to_list)
+               
+               if body_encoding == "base64":
+                 
+                 body = base64.b64decode(body_data).decode('utf-8')
+               
+               else:
+                 body = body_data.decode('utf-8')
+               
+               
+               LOGGER.debug("POST body: %s " % (body))
+               body_json = json.loads(body)
+               
+               body_json['streamId'] = str(stream_id_int)
+               
+               # Get request headers
+               # x-forwarded-for
+               # user-agent
+               # host
+               headers_for_emt = dict()
+               try:
+                 hkey = req_headers['x-forwarded-for'][0]['key']
+                 hvalue = req_headers['x-forwarded-for'][0]['value']
+                 headers_for_emt[hkey] = hvalue
+               except:
+                 return LOGGER.debug("couldn't extract x-forwarded-for header from request")
+               
+               try:
+                 hkey = req_headers['user-agent'][0]['key']
+                 hvalue = req_headers['user-agent'][0]['value']
+                 headers_for_emt[hkey] = hvalue
+               except:
+                 return LOGGER.debug("couldn't extract user-agent header from request")
+               
+               try:
+                 hkey = req_headers['host'][0]['key']
+                 hvalue = req_headers['host'][0]['value']
+                 headers_for_emt[hkey] = hvalue
+               except:
+                 return LOGGER.debug("couldn't extract host header from request")
+               
+               # Extract any query params and convert to urllib fields
+               queryparams_for_emt = dict()
+               if len(request['querystring']) > 0:
+                 
+                 avail_suppression = {'mode':'OFF','value':'','fillpolicy':''}
+                 avail_suppression_specified_in_query_param = False
+                 
+                 qs_list = request['querystring'].split("&")
+                 for qs in qs_list:
+                   
+                   qpkey = urllib.parse.quote_plus(qs.split("=")[0])
+                   qpvalue = urllib.parse.quote_plus(qs.split("=")[1])
+                   
+                   # check for ads prefix, if present, add to adsParams object of body_json
+                   if qpkey[0:3] == "ads":
+                     
+                     if 'adsParams' not in body_json:
+                       body_json['adsParams'] = dict()
+                     
+                     qpkey_no_prefix = qpkey[4:]
+                     
+                     body_json['adsParams'][qpkey_no_prefix] = qpvalue
+                   
+                   elif qpkey[0:len('aws.availSuppression')] == 'aws.availSuppression':
+                     
+                     avail_suppression_specified_in_query_param = True
+                     
+                     qpkey_no_prefix = qpkey[len('aws.availSuppression'):].lower() # Mode / Value / FillPolicy
+                     
+                     avail_suppression[qpkey_no_prefix] = qpvalue
+                   
+                   
+                   # anything else should make the playerParams object
+                   else:
+                     
+                     if 'playerParams' not in body_json:
+                       body_json['playerParams'] = dict()
+                     
+                     body_json['playerParams'][qpkey] = qpvalue
+                   
+                   
+                   #queryparams_for_emt[qpkey] = qpvalue
+                   
+                   if avail_suppression_specified_in_query_param:
+                     body_json['availSuppression'] = avail_suppression
+               
+               
+               # Create POST to MediaTailor
+               # Create urllib3 pool manager
+               http = urllib3.PoolManager()
+               
+               
+               full_path_to_mediatailor = "%s://%s/%s?%s" % (protocol,cdn_domain_name,path,queryparams_str)
+               LOGGER.debug("Full path to MediaTailor is : %s " % (full_path_to_mediatailor))
+               LOGGER.debug("Request headers to send to MediaTailor : %s " % (json.dumps(headers_for_emt)))
+               
+               # Get the manifest from GitHub
+               session_init_response = http.request('POST', full_path_to_mediatailor, body=json.dumps(body_json), headers=headers_for_emt)
+               
+               LOGGER.debug("Session initialization response : %s " % (session_init_response.status))
+               
+               if session_init_response.status != 200:
+                 response = {
+                 'body': "received unexpected response %s" % (session_init_response.status),
+                 'bodyEncoding': 'text',
+                 'status': 404,
+                 'statusDescription': 'status description'
+               };
+                 
+                 return response
+               
+               
+               # Return response to client
+               # Parse response headers for content-type
+               try:
+                 response_headers = session_init_response.headers.__dict__
+                 content_type_value = response_headers['_container']['content-type'][1]
+               except:
+                 content_type_value = "text/html"
+                 LOGGER.warning("Unable to extract content-type response header from MediaTailor response, using default")
+               
+               # Return response to requestor
+               return response_template(session_init_response.data.decode("utf-8"),200,"done",content_type_value)
+              
+              else:
+               
+               LOGGER.error("Request method not supported")
+               
+               error_response = dict()
+               error_response['msg'] = "Unsupported HTTP request method used, GET and POST are supported"
+               
+               return response_template(json.dumps(error_response),502,"description","application/json")
+
+      Tags:
+        - Key: StackName
+          Value: !Ref AWS::StackName
+
+  MediaTailorMicroServiceVersion:
+    Type: AWS::Lambda::Version
+    Properties:
+      FunctionName: !Ref MediaTailorMicroService
+      Description: v1
 
 #################################
 # Outputs
