@@ -396,13 +396,13 @@ Resources:
             
             def response_template(response_body,response_code,response_desc,content_type):
                 
-                headers = {
+              headers = {
                 "content-type" : [{
                   "key":"Content-Type","value":content_type
                 }]
               }
                 
-                response = {
+              response = {
                 'body': response_body,
                   'bodyEncoding': 'text',
                   'headers':headers,
@@ -412,7 +412,7 @@ Resources:
               return response
             
             def redirect_response_template(location_url):
-                response = {
+              response = {
                 'status': '302',
                 'statusDescription': 'Found',
                 'headers': {
@@ -573,13 +573,13 @@ Resources:
               
               if session_init_response.status != 200:
                 response = {
-                'body': "received unexpected response %s" % (session_init_response.status),
-                'bodyEncoding': 'text',
-                'status': 404,
-                'statusDescription': 'status description'
-            };
+                  'body': "received unexpected response %s" % (session_init_response.status),
+                  'bodyEncoding': 'text',
+                  'status': 404,
+                  'statusDescription': 'status description'
+                  };
               
-              return response
+                return response
               
               
               # Return response to client
