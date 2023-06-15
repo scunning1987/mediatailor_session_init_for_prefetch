@@ -11,14 +11,18 @@ See the below 2 examples of ad requests with and without prefetch enabled...
 
 ### No prefetch
 
-    ![](images/adsrequests1.png?width=50pc&classes=border,shadow)
+![](images/adsrequests1.png?width=50pc&classes=border,shadow)
+
 With no prefetch, requests may time out if the ADS doesn't have the capacity to serve all requests within an acceptable latenxy timeframe.
 
 ### Prefetch
-    ![](images/adsrequests2.png?width=50pc&classes=border,shadow)
+
+![](images/adsrequests2.png?width=50pc&classes=border,shadow)
+
 With the use of prefetch schedules, MediaTailor is able to keep within the ad serving capacity of the ADS. This uses the concept of `stream id` to group requests together in their own retrieval windows
 
-    ![](images/adsrequests3.png?width=50pc&classes=border,shadow)
+![](images/adsrequests3.png?width=50pc&classes=border,shadow)
+
 The prefetch schedules have **Retrieval windows** and **Consumption windows**. The Retrieval windows of the schedules should be staggered, but the consumption windows (ie. the expected time of the ad break) should be the same.
 
 There will be some requests made to the ad server at the time of the ad break, which can be attributed to:
