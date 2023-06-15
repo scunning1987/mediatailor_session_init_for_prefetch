@@ -3,11 +3,19 @@
 ## Overview
 MediaTailor is a server side ad insertion (SSAI) service that can scale to support millions of concurrent streaming sessions. As SSAI scales, the ad tech stack (ad buying & selling, and ad decisioning) must also scale, but traffic for ad requests are very spiky and maintaining scale for Ad Decisioning systems can be costly. For many reasons, MediaTailor implemented a feature called live prefetch, which is designed to make calls to the ad server before an ad break is seen in the manifest.
 
-The prefetch feature is configured by 
+Instructions on how to create and manage prefetch schedules can be found in the MediaTailor documentation pages.
+
+The prefetch schedule has an optional setting called `stream id`, the value of which is used to logically group active sessions into different prefetch windows, allowing you to employ your own custom traffic shaping/throttling to the ADS
+
+See the below 2 examples of ad requests with and without prefetch enabled...
+
+No prefetch
 
 
 
-![](images/prefetch1.png?width=50pc&classes=border,shadow)
+![](images/adsrequests1.png?width=50pc&classes=border,shadow)
+
+![](images/adsrequests2.png?width=50pc&classes=border,shadow)
 
 
 ## Release Notes
