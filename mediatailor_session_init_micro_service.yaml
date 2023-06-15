@@ -191,6 +191,7 @@ Resources:
             - EventType: origin-request
               IncludeBody: true
               LambdaFunctionARN: !Ref MediaTailorMicroServiceVersion
+        PriceClass: PriceClass_100
       Tags:
         - Key: StackName
           Value: !Ref AWS::StackName
