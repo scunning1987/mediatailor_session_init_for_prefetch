@@ -629,6 +629,7 @@ Outputs:
       - '/'
       - - 'https:/'
         - !GetAtt CloudFrontDistribution.DomainName
+        - 'session-initializer'
         - !Select [ 3, !Split [ '/' , !GetAtt MediaTailorConfiguration.SessionInitializationEndpointPrefix ] ]
         - !Select [ 4, !Split [ '/' , !GetAtt MediaTailorConfiguration.SessionInitializationEndpointPrefix ] ]
         - !Select [ 5, !Split [ '/' , !GetAtt MediaTailorConfiguration.SessionInitializationEndpointPrefix ] ]
@@ -644,6 +645,7 @@ Outputs:
       - '/'
       - - 'https:/'
         - !GetAtt CloudFrontDistribution.DomainName
+        - 'session-initializer'
         - !Select [ 3, !Split [ '/' , !GetAtt MediaTailorConfiguration.HlsConfiguration.ManifestEndpointPrefix ] ]
         - !Select [ 4, !Split [ '/' , !GetAtt MediaTailorConfiguration.HlsConfiguration.ManifestEndpointPrefix ] ]
         - !Select [ 5, !Split [ '/' , !GetAtt MediaTailorConfiguration.HlsConfiguration.ManifestEndpointPrefix ] ]
@@ -657,6 +659,7 @@ Outputs:
       - '/'
       - - 'https:/'
         - !GetAtt CloudFrontDistribution.DomainName
+        - 'session-initializer'
         - !Select [ 3, !Split [ '/' , !GetAtt MediaTailorConfiguration.DashConfiguration.ManifestEndpointPrefix ] ]
         - !Select [ 4, !Split [ '/' , !GetAtt MediaTailorConfiguration.DashConfiguration.ManifestEndpointPrefix ] ]
         - !Select [ 5, !Split [ '/' , !GetAtt MediaTailorConfiguration.DashConfiguration.ManifestEndpointPrefix ] ]
