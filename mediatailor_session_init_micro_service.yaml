@@ -365,7 +365,7 @@ Resources:
       Timeout: 3
       MemorySize: 128
       Code:
-        ZipFile: |
+        ZipFile: !Sub |
           '''
           Function : Session initialization micro-service, with auto stream-id generator
           '''
@@ -385,7 +385,7 @@ Resources:
             LOGGER.debug("event: %s" % (json.dumps(event)))
             
             # Number of prefetch groups to use as part of the stream id range, starting at 1 and inclusive of the number passed in this variable
-            prefetch_groups = !Ref MediaTailorAdsUrl
+            prefetch_groups = ${MediaTailorAdsUrl}
             
             LOGGER.debug("Number of prefetch groups: %s" % (prefetch_groups))
             
