@@ -140,9 +140,11 @@ Resources:
               OriginProtocolPolicy: https-only
           - DomainName: !Select [ 2, !Split [ '/' , !GetAtt MediaTailorConfiguration.PlaybackEndpointPrefix ] ]
             Id: !Sub MediaTailor_SSAI_Endpoints_${AWS::StackName}
+            CustomOriginConfig:
+              HTTPSPort: 443
+              OriginProtocolPolicy: https-only
           - DomainName: aws.amazon.com
             Id: aws
-
             CustomOriginConfig:
               HTTPSPort: 443
               OriginProtocolPolicy: https-only
