@@ -9,14 +9,14 @@ The prefetch schedule has an optional setting called `stream id`, the value of w
 
 See the below 2 examples of ad requests with and without prefetch enabled...
 
-No prefetch
-
-
+### No prefetch
 
 ![](images/adsrequests1.png?width=50pc&classes=border,shadow)
+With no prefetch, requests may time out if the ADS doesn't have the capacity to serve all requests within an acceptable latenxy timeframe.
 
+### Prefetch
 ![](images/adsrequests2.png?width=50pc&classes=border,shadow)
-
+With the use of prefetch schedules, MediaTailor is able to keep within the ad serving capacity of the ADS. This uses the concept of `stream id` to group requests together in their own retrieval windows
 
 ## Release Notes
 | Date       | Version | Update Notes                                                           |
